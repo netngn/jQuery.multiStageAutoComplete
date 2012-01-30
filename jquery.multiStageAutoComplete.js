@@ -7,24 +7,27 @@ jQuery.fn.extend({
     var completedMatchedText = '';
     var previousTextBoxValue = null; 
     var autoCompleteDataSetIndex = 0;
+    var autoCompleteDataSet = settings.autoCompleteDataSet;
     var autoCompleteElementsSelected = { };
     var textTimeout = null;
     var methods = {
       selectTextRange: function(start, end)
       {
-        if(textBox.setSelectionRange) {
-            textBox.focus();
-            textBox.setSelectionRange(start, end);
-        } else if(textBox.createTextRange) {
-            var range = textBox.createTextRange();
+        var textBoxObject = $(textBox)[0];
+        if(textBoxObject.setSelectionRange) {
+            textBoxObject.focus();
+            textBoxObject.setSelectionRange(start, end);
+        } else if(textBoxObject.createTextRange) {
+            var range = textBoxObject.createTextRange();
             range.collapse(true);
             range.moveEnd('character', end);
             range.moveStart('character', start);
             range.select();
         }
       },
-      resetAutoComplete: function()
+      resetautoComplete: function()
       {
+        console.log('reset');
         completedMatchedText = '';
         previousTextBoxValue = null; 
         autoCompleteDataSetIndex = 0;
@@ -34,21 +37,20 @@ jQuery.fn.extend({
       {
         var text = textBox.val();
         if(text == previousTextBoxValue) { return; }
-        previouseTextBoxValue = text;
+        previousTextBoxValue = text;
         if(text.trim().length > 0)
         {
           methods.parseText(text, true);
         } else {
-          methods.resetAutoComplete();
+          methods.resetautoComplete();
         }
       },
       parseText: function(text, setText)
       {
-           var searchData = settings.autoCompleteDataSet[autoCompleteDataSetIndex]['data'];
-           var numberTransform = settings.autoCompleteDataSet[autoCompleteDataSetIndex]['numberTransform'];
+           var searchData = autoCompleteDataSet[autoCompleteDataSetIndex]['data'];
+           var numberTransform = autoCompleteDataSet[autoCompleteDataSetIndex]['numberTransform'];
            var matchedElementIndex;
-           var originalWords = text.split(' ');
-
+           text = text.replace(completedMatchedText, '').replace(/^\s+/,"");
            if(searchData[0] instanceof Object)
            {
               searchData = searchData.map(function(value)
@@ -76,14 +78,14 @@ jQuery.fn.extend({
       setNewTextBoxValue: function(newText)
       {
          textBox.val(newText);
-         var startLength = 0;
+         var startLength = 1;
          if(previousTextBoxValue)
          {
             startLength = previousTextBoxValue.length;
          }
          methods.selectTextRange(startLength, newText.length);
       },
-      searchHash: function(array)
+      searchHash: function(text, array)
       {
         var matcher = new RegExp('^' + text, "i");
         for(i=0;i<array.length;i++){
@@ -105,21 +107,19 @@ jQuery.fn.extend({
       },
       detectDataSetTransition: function()
       {
-          if(completedMatchedText == '')
+          var textValue = textBox.val().trim();
+          if(textBox.val().indexOf(completedMatchedText) > -1)
           {
-
-          } else if(textBox.val().indexof(completedMatchedText) > -1)
-          {
-              var textValue = textBox.val().replace(completedMatchedText, ''); 
-              if(parseText(textValue.trim(), false))
-              {
-              }
-
+              textValue = textBox.val().replace(completedMatchedText, ''); 
           }
+              if(methods.parseText(textValue.trim(), false))
+              {
+                methods.makeTransition();
+              }
       },
       makeTransition: function()
       {
-          completedMatchedText = textBox.val(); 
+          completedMatchedText = textBox.val() + ' '; 
           
           if(autoCompleteDataSetIndex + 1 == autoCompleteDataSet.length || autoCompleteDataSet[autoCompleteDataSetIndex]['completesDataSet'])
           {
@@ -127,19 +127,21 @@ jQuery.fn.extend({
              if(settings.fireEnterKeyEventOnComplete && settings.onEnterKeyEvent != null) { settings.onEnterKeyEvent(); }
              return;
           } else {
-            var transitionsTo = autocompleteDataSet[autoCompleteDataSetIndex][autoCompleteElementsSelected[autoCompleteDataSetIndex]]['transitionsTo'];
+            var transitionsTo = autoCompleteDataSet[autoCompleteDataSetIndex]['data'][autoCompleteElementsSelected[autoCompleteDataSetIndex]]['transitionsTo'];
             if(transitionsTo)
             {
-              var transitionIndex = searchHash(transitionsTo, autocompleteDataSet);
+              var transitionIndex = methods.searchHash(transitionsTo, autoCompleteDataSet);
               if(transitionIndex > -1)
               {
 
                 autoCompleteDataSetIndex=transitionIndex;
+                return;
               } else {
                   alert('transition error occurred');
               }
 
             }
+              console.log('incrementing dataSetIndex');
               autoCompleteDataSetIndex++;
           }
 
@@ -157,6 +159,10 @@ jQuery.fn.extend({
             break;
         }
     },
+    currentSelectionContainsSpace: function()
+    {
+
+    },
     onKeyDown: function(e)
     {
         switch(e.keyCode) {
@@ -168,19 +174,25 @@ jQuery.fn.extend({
             }
             break;
           case 32:
+            debugger;
+            if(document.getSelection && document.getSelection().type == "Range")
+            {
+              textBox.blur().val(textBox.val()).focus();
+            } else {
             methods.detectDataSetTransition();
+            }
             break;
           case 9:  // tab
             e.preventDefault();
             textBox.blur().val(textBox.val()).focus();
             break;
           case 27: // Escape
-            methods.resetAutoComplete();
+            methods.resetautoComplete();
             break;
           default:
             if(textBox.val() == '')
             {
-                methods.resetAutoComplete();
+                methods.resetautoComplete();
             }
             break;
         }
