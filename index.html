@@ -12,13 +12,13 @@ $('#searchTextBox').multiStageAutoComplete(
               { name: "verbOrPrep", data: [
                       {name: 'from'}, 
                       {name: 'sent', transitionsTo: 'dateWords'}] },
-              { name: "contacts",  data:[{ id: 122, name:'Jim' }, { id: 124, name:'Sandra'}], completesDataSet: true },
+              { name: "contacts",  data:[{ id: 122, name:'Jim' }, { id: 124, name:'Sandra'}],  },
               { name: "sentVerb", data: [ "sent"]},
             { name: "dateWords", data: ['a week ago', 
                           'today', 'yesterday', 
                           'a year ago', 'a month ago', 
                           '\d weeks ago', '\d months ago', '\d years ago', 
-                          '\d days ago'], numberTransform: true},
+                          '\d days ago'], numberTransform: true, completesDataSet: true},
 
              ], //REQUIRED FIELD
         onEnterKeyEvent: function() {
@@ -42,9 +42,9 @@ $('#searchTextBox').multiStageAutoComplete(
 <body>
 <p>Welcome to the example</p>
 <input id="searchTextBox" type="text" />
-<p>
-documents from jim
-photos sent yesterday
-</p>
+<ul>
+<li>documents from jim</lI>
+<li>photos sent yesterday</li>
+</ul>
 </body>
 </html>

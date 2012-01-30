@@ -5,11 +5,13 @@ jQuery.fn.extend({
     }, options || {});
     var textBox = this;
     var completedMatchedText = '';
+    var dataSetComplete = false;
     var previousTextBoxValue = null; 
     var autoCompleteDataSetIndex = 0;
     var autoCompleteDataSet = settings.autoCompleteDataSet;
     var autoCompleteElementsSelected = { };
     var textTimeout = null;
+    var blurredText = false;
     var methods = {
       selectTextRange: function(start, end)
       {
@@ -27,14 +29,22 @@ jQuery.fn.extend({
       },
       resetautoComplete: function()
       {
-        console.log('reset');
+        blurredText = false;
+        dataSetComplete = false;
         completedMatchedText = '';
         previousTextBoxValue = null; 
         autoCompleteDataSetIndex = 0;
         autoCompleteElementsSelected = { };
       },
+      finishAutoCompleteSet: function()
+      {
+
+          if(settings.onEnterKeyEvent != null) { settings.onEnterKeyEvent(); }
+          dataSetComplete = true;
+      },
       onTextChange: function()
       {
+        if(dataSetComplete == true) { return; }
         var text = textBox.val();
         if(text == previousTextBoxValue) { return; }
         previousTextBoxValue = text;
@@ -60,7 +70,7 @@ jQuery.fn.extend({
            }
            if(numberTransform)
            {
-             var number = nextWord.match(/\d+/g);
+             var number = text.match(/\d+/g);
              if(number > 0)
                searchData = searchData.map(function(value) { return value.replace('\d', number); });
            }
@@ -120,11 +130,9 @@ jQuery.fn.extend({
       makeTransition: function()
       {
           completedMatchedText = textBox.val() + ' '; 
-          
           if(autoCompleteDataSetIndex + 1 == autoCompleteDataSet.length || autoCompleteDataSet[autoCompleteDataSetIndex]['completesDataSet'])
           {
 
-             if(settings.fireEnterKeyEventOnComplete && settings.onEnterKeyEvent != null) { settings.onEnterKeyEvent(); }
              return;
           } else {
             var transitionsTo = autoCompleteDataSet[autoCompleteDataSetIndex]['data'][autoCompleteElementsSelected[autoCompleteDataSetIndex]]['transitionsTo'];
@@ -154,6 +162,7 @@ jQuery.fn.extend({
             return;
             break;
           default:
+            blurredText = false;
             if (textTimeout) clearTimeout(textTimeout);
             textTimeout = setTimeout(function(){ methods['onTextChange']();}, 50);
             break;
@@ -161,30 +170,56 @@ jQuery.fn.extend({
     },
     currentSelectionContainsSpace: function()
     {
-
+        var elementIndex = autoCompleteElementsSelected[autoCompleteDataSetIndex];
+        var value = methods.grabSelectedValueFromDataSet(autoCompleteDataSetIndex, elementIndex, 'name');
+        if(value.match(/\s+/g))
+        {
+           return true;
+        }
+        return false;
+    },
+    grabSelectedValueFromDataSet: function(dataSetIndex, elementIndex, hashKey)
+    {
+       var data = autoCompleteDataSet[dataSetIndex]['data'];
+       if(data[0] instanceof Object)
+       {
+          return data[elementIndex][hashKey];
+       }
+       return data[elementIndex];
+    },
+    blurringText: function(e)
+    {
+      if(methods.currentSelectionContainsSpace()) { return; }
+      if(document.getSelection && document.getSelection().type == "Range")
+           {
+              if(!blurredText) { e.preventDefault(); }
+              textBox.blur().val(textBox.val()).focus();
+              blurredText = true;
+              return true;
+            }
+            return false;
     },
     onKeyDown: function(e)
     {
         switch(e.keyCode) {
           case 13: // return
-            if(methods.onEnterKeyEvent != null)
+            if(!methods.blurringText(e))
             {
-              e.preventDefault();
-              methods.onEnterKeyEvent();
+              if(settings.onEnterKeyEvent != null)
+              {
+                e.preventDefault();
+                settings.onEnterKeyEvent();
+              }
             }
             break;
           case 32:
-            debugger;
-            if(document.getSelection && document.getSelection().type == "Range")
+            if(!methods.blurringText(e))
             {
-              textBox.blur().val(textBox.val()).focus();
-            } else {
-            methods.detectDataSetTransition();
+              methods.detectDataSetTransition();
             }
             break;
           case 9:  // tab
-            e.preventDefault();
-            textBox.blur().val(textBox.val()).focus();
+            methods.blurringText(e);
             break;
           case 27: // Escape
             methods.resetautoComplete();
