@@ -1,15 +1,14 @@
 jQuery.fn.extend({
-  cropBehind: function(options){
+  multiStageAutoComplete: function(options){
     var jQ = jQuery;
     var settings = $.extend({
     }, options || {});
-    var completedMatchedText = '';
     var textBox = this;
+    var completedMatchedText = '';
     var previousTextBoxValue = null; 
     var autoCompleteDataSetIndex = 0;
     var autoCompleteElementsSelected = { };
     var textTimeout = null;
-    var currentlyMatching = false;
     var methods = {
       selectTextRange: function(start, end)
       {
@@ -23,6 +22,13 @@ jQuery.fn.extend({
             range.moveStart('character', start);
             range.select();
         }
+      },
+      resetAutoComplete: function()
+      {
+        completedMatchedText = '';
+        previousTextBoxValue = null; 
+        autoCompleteDataSetIndex = 0;
+        autoCompleteElementsSelected = { };
       },
       onTextChange: function()
       {
@@ -39,11 +45,11 @@ jQuery.fn.extend({
       parseText: function(text, setText)
       {
            var searchData = settings.autoCompleteDataSet[autoCompleteDataSetIndex]['data'];
-           var numberTransform = settings.autoCompleteDataSet[autoCompleteDataIndex]['numberTransform'];
+           var numberTransform = settings.autoCompleteDataSet[autoCompleteDataSetIndex]['numberTransform'];
            var matchedElementIndex;
            var originalWords = text.split(' ');
 
-           if(searchData[0] instanceof Hash)
+           if(searchData[0] instanceof Object)
            {
               searchData = searchData.map(function(value)
                 {
@@ -70,7 +76,12 @@ jQuery.fn.extend({
       setNewTextBoxValue: function(newText)
       {
          textBox.val(newText);
-         methods.selectTextRange(previousTextBoxValue.length, newText.length);
+         var startLength = 0;
+         if(previousTextBoxValue)
+         {
+            startLength = previousTextBoxValue.length;
+         }
+         methods.selectTextRange(startLength, newText.length);
       },
       searchHash: function(array)
       {
@@ -102,10 +113,36 @@ jQuery.fn.extend({
               var textValue = textBox.val().replace(completedMatchedText, ''); 
               if(parseText(textValue.trim(), false))
               {
-
               }
 
           }
+      },
+      makeTransition: function()
+      {
+          completedMatchedText = textBox.val(); 
+          
+          if(autoCompleteDataSetIndex + 1 == autoCompleteDataSet.length || autoCompleteDataSet[autoCompleteDataSetIndex]['completesDataSet'])
+          {
+
+             if(settings.fireEnterKeyEventOnComplete && settings.onEnterKeyEvent != null) { settings.onEnterKeyEvent(); }
+             return;
+          } else {
+            var transitionsTo = autocompleteDataSet[autoCompleteDataSetIndex][autoCompleteElementsSelected[autoCompleteDataSetIndex]]['transitionsTo'];
+            if(transitionsTo)
+            {
+              var transitionIndex = searchHash(transitionsTo, autocompleteDataSet);
+              if(transitionIndex > -1)
+              {
+
+                autoCompleteDataSetIndex=transitionIndex;
+              } else {
+                  alert('transition error occurred');
+              }
+
+            }
+              autoCompleteDataSetIndex++;
+          }
+
       },
     onKeyPress: function(e)
     {
@@ -131,7 +168,7 @@ jQuery.fn.extend({
             }
             break;
           case 32:
-            methods.detectTransition();
+            methods.detectDataSetTransition();
             break;
           case 9:  // tab
             e.preventDefault();
@@ -148,9 +185,8 @@ jQuery.fn.extend({
             break;
         }
     },
-      setupAutoCompleteMaster: function()
+      setupMultiStageAutoComplete: function()
       {
-
         $(textBox).keydown(function(e){
           methods['onKeyDown'](e);
         });
@@ -160,8 +196,8 @@ jQuery.fn.extend({
       }
     };
     return this.each(function(){
-      if(settings.data == null) { return; }
-      methods['setupAutoCompleteMaster'].apply( this );
+      if(settings.autoCompleteDataSet == null) { return; }
+      methods['setupMultiStageAutoComplete'].apply( this );
     });
   }
 });
