@@ -1,0 +1,46 @@
+<html>
+<head>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+<script src="jquery.cropBehind.js"></script>
+<script>
+  $(function() {
+  
+$('#searchTextBox').autocompleteMaster(
+     { 
+        autoCompleteDataSet: [
+              { name: "searchType", data:  ['photos', 'documents'] },
+              { name: "verbOrPrep", data: [
+                      {'from': ['contacts', 'dates']}, 
+                      {'sent': 'dates'}] },
+              { name: "contacts",  data:[{ id: 122, name:'Jim' }, { id: 124, name:'Sandra'}]},
+            { name: "dateWords" data: ['a week ago', 
+                          'today', 'yesterday', 
+                          'a year ago', 'a month ago', 
+                          '\d weeks ago', '\d months ago', '\d years ago', 
+                          '\d days ago'], numberTransform: true]},
+
+             ], //REQUIRED FIELD
+     }
+);
+
+});
+</script>
+<style>
+  #searchTextBox
+  {
+    width:76px;
+    border:solid 1px #fc4;
+    font-size:14pt;
+    font-family: Verdana;
+  }
+</style>
+</head>
+<body>
+<p>Welcome to the example</p>
+<input id="searchTextBox" type="text">
+<p>
+documents from jim
+photos sent yesterday
+</p>
+</body>
+</html>

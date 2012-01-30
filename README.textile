@@ -1,0 +1,19 @@
+h1.  jQuery.autocompleteMaster
+
+<pre>
+$('#searchTextBox').autocompleteMaster(
+     { 
+        data: [
+              { "action": ['email', 'call', 'text'] },
+              { "contacts": 'http://localhost/contacts?q=<DYNAMIC_SEARCH_TERM>' },
+
+             ], //REQUIRED FIELD
+     }
+);
+</pre>
+
+p. Requirements: jQuery, a textbox and data.
+
+p. I hope this helps with machine learning algorithims one day. 
+
+
