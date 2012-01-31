@@ -13,7 +13,7 @@ function objectToText(obj)
                 {
                   out += objectToText(obj[i]);
                 }  else {  
-                  out += obj[i];
+                  out += "'" + obj[i] + "'," ;
                }
                 out += "\n";
             }

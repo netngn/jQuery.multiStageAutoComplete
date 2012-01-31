@@ -39,10 +39,14 @@ jQuery.fn.extend({
       getFinishedValues: function()
       {
          var results = {};
-         autoCompleteElementsSelected.map(function(value, index)
+         autoCompleteElementsSelected.map(function(elementIndex, dataSetIndex)
          {
-            
-             results[autoCompleteDataSet[index]['name'].toString()] = methods.grabSelectedValueFromDataSet(index, value, "id");
+             var selectedElementValue = methods.grabSelectedValueFromDataSet(dataSetIndex, elementIndex, "id")
+             if(autoCompleteDataSet[dataSetIndex]['numberTransform'])
+             {
+               selectedElementValue = selectedElementValue.replace('\d', autoCompleteDataSet[dataSetIndex]['numberTransformed']);
+             }
+             results[autoCompleteDataSet[dataSetIndex]['name'].toString()] = selectedElementValue;
          })
          return results;
       },
@@ -81,8 +85,11 @@ jQuery.fn.extend({
            if(numberTransform)
            {
              var number = text.match(/\d+/g);
-             if(number > 0)
+             if(number)
+             {
                searchData = searchData.map(function(value) { return value.replace('\d', number); });
+               autoCompleteDataSet[autoCompleteDataSetIndex]['numberTransformed'] = number;
+             }
            }
             matchedElementIndex = methods.searchArray(text, searchData);
 

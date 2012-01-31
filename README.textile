@@ -1,19 +1,40 @@
-h1.  jQuery.autocompleteMaster
+h1.  jQuery.multiStageAutoComplete
+
+p. Currently only supports multi stage autocomplete within the textbox, no drop down at this time.
 
 <pre>
-$('#searchTextBox').autocompleteMaster(
+$('#searchTextBox').multiStageAutoComplete(
      { 
-        data: [
-              { "action": ['email', 'call', 'text'] },
-              { "contacts": 'http://localhost/contacts?q=<DYNAMIC_SEARCH_TERM>' },
+        finishOnEnterKey: true,
+        autoCompleteDataSet: [
+                  { name: "searchType", data:  ['photos', 'documents'] },
+                  { name: "verbOrPrep", data: [
+                          {id: "from", name: 'from'}, 
+                          {id: "sent", name: 'sent', transitionsTo: 'dateWords'}] },
+                  { name: "contacts",  data:[{ id: 122, name:'Jim' }, { id: 124, name:'Sandra'}],  },
+                  { name: "sentVerb", data: [ "sent"]},
+                  { name: "dateWords", data: ['a week ago', 
+                                'today', 'yesterday', 
+                                'a year ago', 'a month ago', 
+                                '\d weeks ago', '\d months ago', '\d years ago', 
+                                '\d days ago'], numberTransform: true, completesDataSet: true},
 
              ], //REQUIRED FIELD
+        onEnterKeyEvent: function(result) {
+            //RESULT is a json object of the name of the dataset as the key and value of the chosen element (id if hash or just string)
+            $('#autoCompleteResult').html(result);
+        }
      }
 );
 </pre>
 
+Example json result:
+
+<pre>
+</pre>
+
+
 p. Requirements: jQuery, a textbox and data.
 
-p. I hope this helps with machine learning algorithims one day. 
 
 
