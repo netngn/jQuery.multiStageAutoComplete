@@ -3,26 +3,45 @@
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 <script src="jquery.multiStageAutoComplete.js"></script>
 <script>
+function objectToText(obj)
+{
+
+            var out = '{\n ';
+            for (var i in obj) {
+                out += ' ' + i + ": ";
+                if(obj[i] instanceof Object)
+                {
+                  out += objectToText(obj[i]);
+                }  else {  
+                  out += obj[i];
+               }
+                out += "\n";
+            }
+            return out + '\n}';
+}
+
   $(function() {
   
 $('#searchTextBox').multiStageAutoComplete(
      { 
+        finishOnEnterKey: true,
         autoCompleteDataSet: [
-              { name: "searchType", data:  ['photos', 'documents'] },
-              { name: "verbOrPrep", data: [
-                      {name: 'from'}, 
-                      {name: 'sent', transitionsTo: 'dateWords'}] },
-              { name: "contacts",  data:[{ id: 122, name:'Jim' }, { id: 124, name:'Sandra'}],  },
-              { name: "sentVerb", data: [ "sent"]},
-            { name: "dateWords", data: ['a week ago', 
-                          'today', 'yesterday', 
-                          'a year ago', 'a month ago', 
-                          '\d weeks ago', '\d months ago', '\d years ago', 
-                          '\d days ago'], numberTransform: true, completesDataSet: true},
+                  { name: "searchType", data:  ['photos', 'documents'] },
+                  { name: "verbOrPrep", data: [
+                          {id: "from", name: 'from'}, 
+                          {id: "sent", name: 'sent', transitionsTo: 'dateWords'}] },
+                  { name: "contacts",  data:[{ id: 122, name:'Jim' }, { id: 124, name:'Sandra'}],  },
+                  { name: "sentVerb", data: [ "sent"]},
+                  { name: "dateWords", data: ['a week ago', 
+                                'today', 'yesterday', 
+                                'a year ago', 'a month ago', 
+                                '\d weeks ago', '\d months ago', '\d years ago', 
+                                '\d days ago'], numberTransform: true, completesDataSet: true},
 
              ], //REQUIRED FIELD
-        onEnterKeyEvent: function() {
-        alert('you won!');
+        onEnterKeyEvent: function(result) {
+            
+            $('#autoCompleteResult').html(objectToText(result));
         }
      }
 );
@@ -46,5 +65,6 @@ $('#searchTextBox').multiStageAutoComplete(
 <li>documents from jim</lI>
 <li>photos sent yesterday</li>
 </ul>
+<pre id="autoCompleteResult"></pre>
 </body>
 </html>

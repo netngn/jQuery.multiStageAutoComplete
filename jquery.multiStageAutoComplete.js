@@ -9,7 +9,7 @@ jQuery.fn.extend({
     var previousTextBoxValue = null; 
     var autoCompleteDataSetIndex = 0;
     var autoCompleteDataSet = settings.autoCompleteDataSet;
-    var autoCompleteElementsSelected = { };
+    var autoCompleteElementsSelected = [];
     var textTimeout = null;
     var blurredText = false;
     var methods = {
@@ -34,12 +34,22 @@ jQuery.fn.extend({
         completedMatchedText = '';
         previousTextBoxValue = null; 
         autoCompleteDataSetIndex = 0;
-        autoCompleteElementsSelected = { };
+        autoCompleteElementsSelected = [];
       },
-      finishAutoCompleteSet: function()
+      getFinishedValues: function()
       {
-
-          if(settings.onEnterKeyEvent != null) { settings.onEnterKeyEvent(); }
+         var results = {};
+         autoCompleteElementsSelected.map(function(value, index)
+         {
+            
+             results[autoCompleteDataSet[index]['name'].toString()] = methods.grabSelectedValueFromDataSet(index, value, "id");
+         })
+         return results;
+      },
+      finishAutoComplete: function()
+      {    
+          textBox.blur().val(textBox.val()).focus();
+          if(settings.onEnterKeyEvent != null) { settings.onEnterKeyEvent(methods.getFinishedValues()); }
           dataSetComplete = true;
       },
       onTextChange: function()
@@ -130,9 +140,9 @@ jQuery.fn.extend({
       makeTransition: function()
       {
           completedMatchedText = textBox.val() + ' '; 
-          if(autoCompleteDataSetIndex + 1 == autoCompleteDataSet.length || autoCompleteDataSet[autoCompleteDataSetIndex]['completesDataSet'])
+          if(methods.isCompleteAutoCompleteDataSet() )
           {
-
+             methods.finishAutoComplete();
              return;
           } else {
             var transitionsTo = autoCompleteDataSet[autoCompleteDataSetIndex]['data'][autoCompleteElementsSelected[autoCompleteDataSetIndex]]['transitionsTo'];
@@ -141,15 +151,10 @@ jQuery.fn.extend({
               var transitionIndex = methods.searchHash(transitionsTo, autoCompleteDataSet);
               if(transitionIndex > -1)
               {
-
                 autoCompleteDataSetIndex=transitionIndex;
                 return;
-              } else {
-                  alert('transition error occurred');
-              }
-
+              } 
             }
-              console.log('incrementing dataSetIndex');
               autoCompleteDataSetIndex++;
           }
 
@@ -178,11 +183,19 @@ jQuery.fn.extend({
         }
         return false;
     },
+    isCompleteAutoCompleteDataSet: function()
+    {
+       if(autoCompleteDataSet.length == autoCompleteDataSetIndex + 1 || autoCompleteDataSet[autoCompleteDataSetIndex]['completesDataSet'])
+       {
+          return true;
+       }
+       return false;
+    },
     grabSelectedValueFromDataSet: function(dataSetIndex, elementIndex, hashKey)
     {
        var data = autoCompleteDataSet[dataSetIndex]['data'];
        if(data[0] instanceof Object)
-       {
+       { 
           return data[elementIndex][hashKey];
        }
        return data[elementIndex];
@@ -203,13 +216,10 @@ jQuery.fn.extend({
     {
         switch(e.keyCode) {
           case 13: // return
-            if(!methods.blurringText(e))
+            if(methods.isCompleteAutoCompleteDataSet() || settings.finishOnEnterKey)
             {
-              if(settings.onEnterKeyEvent != null)
-              {
-                e.preventDefault();
-                settings.onEnterKeyEvent();
-              }
+               e.preventDefault();
+               methods.finishAutoComplete();
             }
             break;
           case 32:
