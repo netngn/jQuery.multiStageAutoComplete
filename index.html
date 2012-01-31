@@ -6,9 +6,9 @@
 function objectToText(obj)
 {
 
-            var out = '{\n ';
+            var out = '{\n';
             for (var i in obj) {
-                out += ' ' + i + ": ";
+                out += '  ' + i + ": ";
                 if(obj[i] instanceof Object)
                 {
                   out += objectToText(obj[i]);
@@ -17,7 +17,7 @@ function objectToText(obj)
                }
                 out += "\n";
             }
-            return out + '\n}';
+            return out + '}';
 }
 
   $(function() {

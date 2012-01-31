@@ -31,6 +31,13 @@ $('#searchTextBox').multiStageAutoComplete(
 Example json result:
 
 <pre>
+{
+  searchType: 'documents',
+  verbOrPrep: 'from',
+  contacts: '122',
+  sentVerb: 'sent',
+  dateWords: '55 years ago',
+}
 </pre>
 
 
