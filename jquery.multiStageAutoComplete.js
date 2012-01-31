@@ -189,7 +189,7 @@ jQuery.fn.extend({
     },
     blurringText: function(e)
     {
-      if(methods.currentSelectionContainsSpace()) { return; }
+      if(e.keyCode == 32 && methods.currentSelectionContainsSpace()) { return true; }
       if(document.getSelection && document.getSelection().type == "Range")
            {
               if(!blurredText) { e.preventDefault(); }
